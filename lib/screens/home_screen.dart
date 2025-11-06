@@ -1,7 +1,8 @@
+// HomeScreen.dart
 import 'package:flutter/material.dart';
+import 'package:zarin/widgets/custom_checklist.dart';
 import 'package:zarin/widgets/custom_dropdown.dart';
 import 'package:zarin/widgets/glass_morphism_card.dart';
-import 'package:zarin/screens/form_screen.dart';
 import 'package:zarin/screens/data_screen.dart';
 import 'package:zarin/widgets/custom_text_field.dart';
 import 'package:zarin/models/field_model.dart';
@@ -14,8 +15,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _textValue = '';
+  // متغیرهای فرم
+  String _name = '';
+  String _email = '';
   String? _selectedProvince;
+  String? _selectedCustomerType;
+
+  Map<String, bool> checklistValues = {
+    'terms': false,
+    'newsletter': false,
+    'privacy': false,
+  };
+
+  Map<String, bool> checklistValues2 = {'offers': false, 'notif': false};
+
+  // خطاهای اعتبارسنجی
+  String? _nameError;
+  String? _emailError;
+  String? _provinceError;
+  String? _customerTypeError;
+  String? _termsError;
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +47,19 @@ class _HomeScreenState extends State<HomeScreen> {
       hint: 'نام خود را وارد کنید',
       keyboardType: TextInputType.name,
     );
-    final TextFieldModel familFieldModel = TextFieldModel(
-      label: 'نام خانوادگی شما',
-      key: 'famil',
+    final TextFieldModel emailFieldModel = TextFieldModel(
+      label: "ایمیل",
+      key: 'email',
       isrequired: true,
-      hint: 'نام خانوادگی خود را وارد کنید',
-      keyboardType: TextInputType.name,
+      hint: 'ایمیل خود را وارد کنید',
+      keyboardType: TextInputType.emailAddress,
     );
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -60,102 +82,142 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxCardWidth),
               child: GlassMorphismCard(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'فرم داینامیک طرف حساب',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 237, 237, 237),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'فرم داینامیک',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: CustomTextField(
-                        model: nameFieldModel,
-                        value: _textValue,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _textValue = newValue;
-                          });
-                        },
-                        keyboardType: nameFieldModel.keyboardType,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: CustomTextField(
-                        model: familFieldModel,
-                        value: _textValue,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _textValue = newValue;
-                          });
-                        },
-                        keyboardType: familFieldModel.keyboardType,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                      const SizedBox(height: 20),
 
-                    CustomDropdown(
-                      label: 'استان',
-                      isRequired: true,
-                      items: const [
-                        'تهران',
-                        'اصفهان',
-                        'شیراز',
-                        'مشهد',
-                        'کردستان',
-                      ],
-                      value: _selectedProvince,
-                      hint: 'استان خود را انتخاب کنید',
-                      prefixIcon: Icons.location_on,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedProvince = newValue;
-                        });
-                      },
-                      isrequired: false,
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: _buildButton(
-                            context,
-                            icon: Icons.edit_note,
-                            label: 'ساخت فرم',
-                            onPressed: () => Navigator.push(
+                      // فیلدهای متنی
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              model: nameFieldModel,
+                              value: _name,
+                              onChanged: (v) => setState(() => _name = v),
+                              errorText: _nameError,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CustomTextField(
+                              model: emailFieldModel,
+                              value: _email,
+                              onChanged: (v) => setState(() => _email = v),
+                              errorText: _emailError,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // دراپ‌دان‌ها
+                      CustomDropdown(
+                        label: 'استان',
+                        isrequired: true,
+                        items: const [
+                          'تهران',
+                          'اصفهان',
+                          'شیراز',
+                          'مشهد',
+                          'کردستان',
+                        ],
+                        value: _selectedProvince,
+                        hint: 'استان خود را انتخاب کنید',
+                        prefixIcon: Icons.location_on,
+                        onChanged: (v) => setState(() => _selectedProvince = v),
+                        errorText: _provinceError,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomDropdown(
+                        label: 'نوع مشتری',
+                        isrequired: true,
+                        items: const ['عمده فروش', 'خرده فروش', 'شرکت', 'فرد'],
+                        value: _selectedCustomerType,
+                        hint: 'نوع مشتری را انتخاب کنید',
+                        prefixIcon: Icons.person_outline,
+                        onChanged: (v) =>
+                            setState(() => _selectedCustomerType = v),
+                        errorText: _customerTypeError,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // چک‌لیست‌ها
+                      CustomChecklist(
+                        title: 'شرایط و قوانین',
+                        items: [
+                          ChecklistItem(
+                            key: 'terms',
+                            label: 'قوانین را می‌پذیرم',
+                            isRequired: true,
+                          ),
+                          ChecklistItem(
+                            key: 'newsletter',
+                            label: 'دریافت خبرنامه',
+                            hint: 'اخبار هفتگی',
+                          ),
+                          ChecklistItem(
+                            key: 'privacy',
+                            label: 'حریم خصوصی را خواندم',
+                          ),
+                        ],
+                        values: checklistValues,
+                        onChanged: (k, v) =>
+                            setState(() => checklistValues[k] = v),
+                        errorText: _termsError,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomChecklist(
+                        title: 'اطلاع‌رسانی',
+                        items: [
+                          ChecklistItem(key: 'offers', label: 'تخفیفات'),
+                          ChecklistItem(key: 'notif', label: 'اطلاعیه‌ها'),
+                        ],
+                        values: checklistValues2,
+                        onChanged: (k, v) =>
+                            setState(() => checklistValues2[k] = v),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // دکمه‌ها
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildButton(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => const FormScreen(),
+                              icon: Icons.check_circle,
+                              label: 'ساخت',
+                              onPressed: _submitForm,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildButton(
+                              context,
+                              icon: Icons.table_chart,
+                              label: 'داده‌ها',
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const DataScreen(newData: {}),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildButton(
-                            context,
-                            icon: Icons.table_chart,
-                            label: 'داده‌ها',
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DataScreen(),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -163,6 +225,66 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _submitForm() {
+    setState(() {
+      _nameError = _name.trim().isEmpty ? 'نام الزامی است' : null;
+      _emailError = _email.trim().isEmpty ? 'ایمیل الزامی است' : null;
+      _provinceError = _selectedProvince == null
+          ? 'استان را انتخاب کنید'
+          : null;
+      _customerTypeError = _selectedCustomerType == null
+          ? 'نوع مشتری را انتخاب کنید'
+          : null;
+      _termsError = !checklistValues['terms']!
+          ? 'پذیرش قوانین الزامی است'
+          : null;
+    });
+
+    // اگر خطا داشت، برگرد
+    if (_nameError != null ||
+        _emailError != null ||
+        _provinceError != null ||
+        _customerTypeError != null ||
+        _termsError != null) {
+      return;
+    }
+
+    // ساخت شیء داده
+    final formData = {
+      'id': DateTime.now().millisecondsSinceEpoch,
+      'name': _name.trim(),
+      'email': _email.trim(),
+      'province': _selectedProvince!,
+      'customerType': _selectedCustomerType!,
+      'newsletter': checklistValues['newsletter']!,
+      'privacy': checklistValues['privacy']!,
+      'offers': checklistValues2['offers']!,
+      'notif': checklistValues2['notif']!,
+    };
+
+    // ارسال به DataScreen
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => DataScreen(newData: formData)),
+    );
+
+    // ریست فرم
+    _resetForm();
+  }
+
+  void _resetForm() {
+    setState(() {
+      _name = '';
+      _email = '';
+      _selectedProvince = null;
+      _selectedCustomerType = null;
+      checklistValues.updateAll((k, v) => false);
+      checklistValues2.updateAll((k, v) => false);
+      _nameError = _emailError = _provinceError = _customerTypeError =
+          _termsError = null;
+    });
   }
 
   Widget _buildButton(
@@ -174,12 +296,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon),
-      label: Text(label, style: const TextStyle(fontSize: 18)),
+      label: Text(label, style: const TextStyle(fontSize: 16)),
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         backgroundColor: Colors.white.withOpacity(0.2),
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 5,
       ),
     );
   }

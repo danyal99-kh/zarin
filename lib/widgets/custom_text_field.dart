@@ -9,7 +9,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLines;
   final int? maxLength;
-
+  final String? errorText;
   const CustomTextField({
     super.key,
     required this.model,
@@ -18,27 +18,41 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.maxLines = 1,
     this.maxLength,
+    this.errorText,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: TextFormField(
-        initialValue: value,
+        initialValue: value ?? '',
         keyboardType: keyboardType,
         maxLines: maxLines,
         maxLength: maxLength,
-        style: const TextStyle(color: Colors.white), // متن سفید برای گلس
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
-          labelText: model.label + (model.isrequired ? ' *' : ''),
-          labelStyle: const TextStyle(color: Colors.white70),
+          label: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.white70),
+              children: [
+                TextSpan(text: model.label),
+                if (model.isrequired)
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          labelStyle: const TextStyle(height: 0),
           hintText: model.hint,
           hintStyle: const TextStyle(color: Colors.white38),
           filled: true,
-          fillColor: Colors.white.withOpacity(
-            0.2,
-          ), // زمینه نیمه‌شفاف برای شیشه‌ای‌تر
+          fillColor: Colors.white.withOpacity(0.2),
           counterStyle: const TextStyle(color: Colors.white54),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
@@ -62,10 +76,12 @@ class CustomTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: Colors.redAccent, width: 2),
           ),
+          errorText: errorText,
+
           errorStyle: const TextStyle(color: Colors.redAccent),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
+            horizontal: 15,
+            vertical: 5,
           ),
           prefixIcon: _getPrefixIcon(),
           suffixIcon: maxLength != null
@@ -77,23 +93,13 @@ class CustomTextField extends StatelessWidget {
                       )
                     : null),
         ),
-        validator: (val) {
-          if (model.isrequired && (val == null || val.isEmpty)) {
-            return 'فیلد اجباری است';
-          }
-          // ولیدیشن اضافی (مثلاً ایمیل)
-          if (model.key == 'email' && val != null && !val.contains('@')) {
-            return 'ایمیل معتبر نیست';
-          }
-          return null;
-        },
+
         onChanged: onChanged,
       ),
     );
   }
 
   Widget? _getPrefixIcon() {
-    // آیکون بر اساس key فیلد (قابل گسترش)
     switch (model.key) {
       case 'email':
         return const Icon(Icons.email, color: Colors.white70);

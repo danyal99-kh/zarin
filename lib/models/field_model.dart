@@ -23,6 +23,7 @@ abstract class FormFieldModel {
   dynamic getDefaultValue();
 }
 
+//تکست فیلد
 class TextFieldModel extends FormFieldModel {
   final TextInputType? keyboardType;
   final int? maxLines;
@@ -61,6 +62,7 @@ class TextFieldModel extends FormFieldModel {
   dynamic getDefaultValue() => '';
 }
 
+//دراپ داون
 class DropdownFieldModel extends FormFieldModel {
   final List<String> items;
   final IconData? prefixIcon;
@@ -95,10 +97,24 @@ class DropdownFieldModel extends FormFieldModel {
         }
         return null;
       },
-      isRequired: false,
     );
   }
 
   @override
   dynamic getDefaultValue() => null;
+}
+
+//چک لیست
+class ChecklistItem {
+  final String key;
+  final String label;
+  final bool isRequired;
+  final String? hint;
+
+  ChecklistItem({
+    required this.key,
+    required this.label,
+    this.isRequired = false,
+    this.hint,
+  });
 }

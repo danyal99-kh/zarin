@@ -23,7 +23,7 @@ class GlassMorphismCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(opacity),
             borderRadius: BorderRadius.circular(borderRadius),
