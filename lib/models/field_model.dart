@@ -44,13 +44,8 @@ class TextFieldModel extends FormFieldModel {
     required dynamic value,
     required Function(dynamic) onChanged,
   }) {
-    final String textValue = (value is String)
-        ? value
-        : (value?.toString() ?? '');
-
     return CustomTextField(
       model: this,
-      value: textValue,
       onChanged: (String newValue) => onChanged(newValue),
       keyboardType: keyboardType,
       maxLines: maxLines,

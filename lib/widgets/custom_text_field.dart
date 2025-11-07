@@ -4,21 +4,21 @@ import '../models/field_model.dart'; // اگر مدل‌ها جدا هستن
 
 class CustomTextField extends StatelessWidget {
   final TextFieldModel model;
-  final String value;
   final Function(String)? onChanged;
   final TextInputType? keyboardType;
   final int? maxLines;
   final int? maxLength;
   final String? errorText;
+  final TextEditingController? controller;
   const CustomTextField({
     super.key,
     required this.model,
-    required this.value,
     this.onChanged,
     this.keyboardType,
     this.maxLines = 1,
     this.maxLength,
     this.errorText,
+    this.controller,
   });
 
   @override
@@ -26,7 +26,7 @@ class CustomTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: TextFormField(
-        initialValue: value ?? '',
+        controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
         maxLength: maxLength,
@@ -86,10 +86,13 @@ class CustomTextField extends StatelessWidget {
           prefixIcon: _getPrefixIcon(),
           suffixIcon: maxLength != null
               ? null
-              : (value.isNotEmpty
+              : (controller?.text.isNotEmpty == true
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.white70),
-                        onPressed: () => onChanged?.call(''),
+                        onPressed: () {
+                          controller?.clear();
+                          onChanged?.call('');
+                        },
                       )
                     : null),
         ),

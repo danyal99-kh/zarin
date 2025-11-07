@@ -1,5 +1,6 @@
-// HomeScreen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zarin/form_provider.dart';
 import 'package:zarin/widgets/custom_checklist.dart';
 import 'package:zarin/widgets/custom_dropdown.dart';
 import 'package:zarin/widgets/glass_morphism_card.dart';
@@ -15,9 +16,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // متغیرهای فرم
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
   String _name = '';
   String _email = '';
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _name);
+    _emailController = TextEditingController(text: _email);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
   String? _selectedProvince;
   String? _selectedCustomerType;
 
@@ -29,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Map<String, bool> checklistValues2 = {'offers': false, 'notif': false};
 
-  // خطاهای اعتبارسنجی
   String? _nameError;
   String? _emailError;
   String? _provinceError;
@@ -103,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: CustomTextField(
                               model: nameFieldModel,
-                              value: _name,
+                              controller: _nameController,
                               onChanged: (v) => setState(() => _name = v),
                               errorText: _nameError,
                             ),
@@ -112,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: CustomTextField(
                               model: emailFieldModel,
-                              value: _email,
+                              controller: _emailController,
                               onChanged: (v) => setState(() => _email = v),
                               errorText: _emailError,
                             ),
@@ -209,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const DataScreen(newData: {}),
+                                  builder: (_) => const DataScreen(),
                                 ),
                               ),
                             ),
@@ -228,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _submitForm() {
+    // 1. اعتبارسنجی
     setState(() {
       _nameError = _name.trim().isEmpty ? 'نام الزامی است' : null;
       _emailError = _email.trim().isEmpty ? 'ایمیل الزامی است' : null;
@@ -242,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : null;
     });
 
-    // اگر خطا داشت، برگرد
+    // 2. اگر خطا بود، متوقف شو
     if (_nameError != null ||
         _emailError != null ||
         _provinceError != null ||
@@ -251,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // ساخت شیء داده
+    // 3. ساخت داده
     final formData = {
       'id': DateTime.now().millisecondsSinceEpoch,
       'name': _name.trim(),
@@ -264,13 +280,20 @@ class _HomeScreenState extends State<HomeScreen> {
       'notif': checklistValues2['notif']!,
     };
 
-    // ارسال به DataScreen
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => DataScreen(newData: formData)),
+    // 4. اضافه کردن به Provider
+    Provider.of<FormProvider>(context, listen: false).addData(formData);
+
+    // 5. نمایش اسنک‌بار
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('داده با موفقیت ثبت شد'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
 
-    // ریست فرم
+    // 6. ریست فرم
     _resetForm();
   }
 
@@ -284,6 +307,8 @@ class _HomeScreenState extends State<HomeScreen> {
       checklistValues2.updateAll((k, v) => false);
       _nameError = _emailError = _provinceError = _customerTypeError =
           _termsError = null;
+      _nameController.clear();
+      _emailController.clear();
     });
   }
 
