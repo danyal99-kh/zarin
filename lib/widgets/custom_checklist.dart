@@ -1,25 +1,23 @@
 // lib/widgets/custom_checklist.dart
 import 'package:flutter/material.dart';
-import 'package:zarin/models/field_model.dart';
+import '../models/form_item_model.dart';
 
 class CustomChecklist extends StatelessWidget {
-  final List<ChecklistItem> items;
-  final Map<String, bool> values;
-  final Function(String, bool)? onChanged;
+  final FormItemModel model;
+  final Function(bool) onChanged;
   final String? errorText;
-  final String? title;
 
   const CustomChecklist({
     super.key,
-    required this.items,
-    required this.values,
-    this.onChanged,
+    required this.model,
+    required this.onChanged,
     this.errorText,
-    this.title,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isChecked = model.value == true;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Container(
@@ -37,21 +35,6 @@ class CustomChecklist extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // عنوان
-            if (title != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  title!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-            // خطای اعتبارسنجی
             if (errorText != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -64,61 +47,51 @@ class CustomChecklist extends StatelessWidget {
                 ),
               ),
 
-            // آیتم‌های چک‌لیست
-            ...items.map((item) {
-              final bool isChecked = values[item.key] ?? false;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1.3,
-                      child: Checkbox(
-                        value: isChecked,
-                        onChanged: (val) {
-                          onChanged?.call(item.key, val ?? false);
-                        },
-                        activeColor: Colors.white,
-                        checkColor: Colors.black87,
-                        side: BorderSide(
-                          color: errorText != null && item.isRequired
-                              ? Colors.redAccent
-                              : Colors.white70,
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        overlayColor: WidgetStateProperty.all(
-                          Colors.white.withOpacity(0.3),
-                        ),
-                      ),
+            Row(
+              children: [
+                Transform.scale(
+                  scale: 1.3,
+                  child: Checkbox(
+                    value: isChecked,
+                    onChanged: (val) => onChanged(val ?? false),
+                    activeColor: Colors.white,
+                    checkColor: Colors.black87,
+                    side: BorderSide(
+                      color: errorText != null && model.required
+                          ? Colors.redAccent
+                          : Colors.white70,
+                      width: 2,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 15,
-                            height: 1.4,
-                          ),
-                          children: [
-                            TextSpan(text: item.label),
-                            if (item.isRequired)
-                              const TextSpan(
-                                text: ' *',
-                                style: TextStyle(color: Colors.redAccent),
-                              ),
-                          ],
-                        ),
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                  ],
+                    overlayColor: WidgetStateProperty.all(
+                      Colors.white.withOpacity(0.3),
+                    ),
+                  ),
                 ),
-              );
-            }),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                      children: [
+                        TextSpan(text: model.label),
+                        if (model.required)
+                          const TextSpan(
+                            text: ' *',
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

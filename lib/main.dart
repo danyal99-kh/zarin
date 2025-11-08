@@ -1,12 +1,11 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zarin/screens/home_screen.dart';
-import 'form_provider.dart';
+import 'package:zarin/form_provider.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(create: (_) => FormProvider(), child: const MyApp()),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -14,30 +13,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dynamic Form Flutter',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        primarySwatch: Colors.indigo,
-
-        popupMenuTheme: PopupMenuThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          color: const Color.fromARGB(255, 50, 58, 108).withOpacity(0.9),
-          elevation: 8,
-          shadowColor: Colors.black45,
-        ),
-
-        scaffoldBackgroundColor: const Color(0xFF1A1A2E),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Color.fromARGB(179, 255, 255, 255)),
-        ),
+    return ChangeNotifierProvider(
+      create: (_) => FormProvider(),
+      child: MaterialApp(
+        title: 'فرم داینامیک',
+        theme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
+        home: const HomeScreen(),
+        debugShowCheckedModeBanner: false,
       ),
-
-      home: const HomeScreen(),
     );
   }
 }

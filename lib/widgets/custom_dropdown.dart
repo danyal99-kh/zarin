@@ -1,26 +1,16 @@
+// lib/widgets/custom_dropdown.dart
 import 'package:flutter/material.dart';
+import '../models/form_item_model.dart';
 
 class CustomDropdown extends StatelessWidget {
-  final String label;
-  final List<String> items;
-  final String? value;
-  final String? hint;
-  final bool isrequired; // <─ فقط این یکی
+  final FormItemModel model;
   final Function(String?) onChanged;
-  final String? Function(String?)? validator;
-  final IconData? prefixIcon;
   final String? errorText;
 
   const CustomDropdown({
     super.key,
-    required this.label,
-    required this.items,
-    this.value,
-    this.hint,
-    required this.isrequired, // <─ فقط این
+    required this.model,
     required this.onChanged,
-    this.validator,
-    this.prefixIcon,
     this.errorText,
   });
 
@@ -29,48 +19,39 @@ class CustomDropdown extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
-        value: value,
-        items: items.map((String item) {
+        value: model.value,
+        items: model.options!.map((String item) {
           return DropdownMenuItem<String>(value: item, child: Text(item));
         }).toList(),
         onChanged: onChanged,
-        validator: validator,
-        borderRadius: BorderRadius.circular(20), // ← منوی گرد!
+        borderRadius: BorderRadius.circular(20),
         elevation: 8,
-        // ←←← منوی گرد با menuStyle (ورژنت کار میکنه!)
         dropdownColor: const Color.fromARGB(255, 50, 58, 108).withOpacity(0.9),
         style: const TextStyle(color: Colors.white),
-
         decoration: InputDecoration(
           errorText: errorText,
           label: RichText(
             text: TextSpan(
               style: const TextStyle(color: Colors.white70, fontSize: 16),
               children: [
-                TextSpan(text: label),
-                if (isrequired)
+                TextSpan(text: model.label),
+                if (model.required)
                   const TextSpan(
                     text: ' *',
                     style: TextStyle(
-                      color: Colors.redAccent, // ← رنگ دلخواهت رو اینجا بذار!
+                      color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
               ],
             ),
           ),
-          labelStyle: const TextStyle(height: 0), // ← حتماً این خط رو اضافه کن!
-          hintText: hint,
+          labelStyle: const TextStyle(height: 0),
+          hintText: model.hint,
           hintStyle: const TextStyle(color: Colors.white38),
           filled: true,
           fillColor: Colors.white.withOpacity(0.2),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
@@ -91,8 +72,8 @@ class CustomDropdown extends StatelessWidget {
             horizontal: 15,
             vertical: 10,
           ),
-          prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: Colors.white70)
+          prefixIcon: model.prefixIcon != null
+              ? Icon(model.prefixIcon, color: Colors.white70)
               : null,
         ),
       ),

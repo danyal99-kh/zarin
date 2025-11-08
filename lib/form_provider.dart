@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+// lib/providers/form_provider.dart
+import 'package:flutter/foundation.dart';
 
-class FormProvider extends ChangeNotifier {
+class FormProvider with ChangeNotifier {
   final List<Map<String, dynamic>> _dataList = [];
 
   List<Map<String, dynamic>> get dataList => List.unmodifiable(_dataList);
@@ -10,21 +11,16 @@ class FormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeData(int id) {
-    _dataList.removeWhere((item) => item['id'] == id);
-    notifyListeners();
-  }
-
-  void updateData(int id, Map<String, dynamic> newData) {
-    final index = _dataList.indexWhere((item) => item['id'] == id);
+  void updateData(int id, Map<String, dynamic> data) {
+    final index = _dataList.indexWhere((e) => e['id'] == id);
     if (index != -1) {
-      _dataList[index] = newData;
+      _dataList[index] = data;
       notifyListeners();
     }
   }
 
-  void clearAll() {
-    _dataList.clear();
+  void removeData(int id) {
+    _dataList.removeWhere((e) => e['id'] == id);
     notifyListeners();
   }
 }

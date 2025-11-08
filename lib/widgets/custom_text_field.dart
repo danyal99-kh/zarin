@@ -1,22 +1,17 @@
 // lib/widgets/custom_text_field.dart
 import 'package:flutter/material.dart';
-import '../models/field_model.dart'; // اگر مدل‌ها جدا هستن
+import '../models/form_item_model.dart'; // تغییر مسیر
 
 class CustomTextField extends StatelessWidget {
-  final TextFieldModel model;
+  final FormItemModel model;
   final Function(String)? onChanged;
-  final TextInputType? keyboardType;
-  final int? maxLines;
-  final int? maxLength;
   final String? errorText;
   final TextEditingController? controller;
+
   const CustomTextField({
     super.key,
     required this.model,
     this.onChanged,
-    this.keyboardType,
-    this.maxLines = 1,
-    this.maxLength,
     this.errorText,
     this.controller,
   });
@@ -26,10 +21,11 @@ class CustomTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        maxLength: maxLength,
+        controller:
+            controller ??
+            TextEditingController(text: model.value?.toString() ?? ''),
+        keyboardType: model.keyboardType,
+        maxLines: model.type == FieldType.text ? 1 : null, // فقط برای text
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           label: RichText(
@@ -37,7 +33,7 @@ class CustomTextField extends StatelessWidget {
               style: const TextStyle(color: Colors.white70),
               children: [
                 TextSpan(text: model.label),
-                if (model.isrequired)
+                if (model.required)
                   const TextSpan(
                     text: ' *',
                     style: TextStyle(
@@ -48,19 +44,11 @@ class CustomTextField extends StatelessWidget {
               ],
             ),
           ),
-          labelStyle: const TextStyle(height: 0),
           hintText: model.hint,
           hintStyle: const TextStyle(color: Colors.white38),
           filled: true,
           fillColor: Colors.white.withOpacity(0.2),
-          counterStyle: const TextStyle(color: Colors.white54),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
@@ -77,26 +65,22 @@ class CustomTextField extends StatelessWidget {
             borderSide: const BorderSide(color: Colors.redAccent, width: 2),
           ),
           errorText: errorText,
-
           errorStyle: const TextStyle(color: Colors.redAccent),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 15,
             vertical: 5,
           ),
           prefixIcon: _getPrefixIcon(),
-          suffixIcon: maxLength != null
-              ? null
-              : (controller?.text.isNotEmpty == true
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white70),
-                        onPressed: () {
-                          controller?.clear();
-                          onChanged?.call('');
-                        },
-                      )
-                    : null),
+          suffixIcon: controller?.text.isNotEmpty == true
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.white70),
+                  onPressed: () {
+                    controller?.clear();
+                    onChanged?.call('');
+                  },
+                )
+              : null,
         ),
-
         onChanged: onChanged,
       ),
     );

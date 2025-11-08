@@ -1,74 +1,196 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zarin/form_provider.dart';
-import 'package:zarin/widgets/custom_checklist.dart';
-import 'package:zarin/widgets/custom_dropdown.dart';
+import 'package:zarin/models/form_item_model.dart';
 import 'package:zarin/widgets/glass_morphism_card.dart';
 import 'package:zarin/screens/data_screen.dart';
-import 'package:zarin/widgets/custom_text_field.dart';
-import 'package:zarin/models/field_model.dart';
+import 'package:zarin/widgets/dynamic_form.dart';
+
+// ====================== لیست فرم نمونه (مثل PDF) ======================
+
+final List<FormItemModel> customerForm = [
+  FormItemModel(
+    id: 1,
+    key: 'name',
+    label: 'نام طرف حساب',
+    type: FieldType.text,
+    required: true,
+    hint: 'نام خود را وارد کنید',
+    keyboardType: TextInputType.name,
+    value: '',
+  ),
+  FormItemModel(
+    id: 2,
+    key: 'mobile',
+    label: 'شماره موبایل',
+    type: FieldType.text,
+    required: true,
+    hint: 'شماره موبایل خود را وارد کنید',
+    keyboardType: TextInputType.phone,
+    value: '',
+  ),
+  FormItemModel(
+    id: 3,
+    key: 'accountType',
+    label: 'نوع طرف حساب',
+    type: FieldType.dropdown,
+    required: true,
+    options: ['حقیقی', 'حقوقی'],
+    hint: 'نوع طرف حساب را انتخاب کنید',
+    value: 'حقیقی',
+  ),
+  FormItemModel(
+    id: 4,
+    key: 'isActive',
+    label: 'وضعیت فعال بودن',
+    type: FieldType.checkbox,
+    value: true,
+  ),
+  FormItemModel(
+    id: 5,
+    key: 'gender',
+    label: 'جنسیت',
+    type: FieldType.radio,
+    options: ['مرد', 'زن'],
+    value: 'مرد',
+  ),
+  FormItemModel(
+    id: 6,
+    label: "سلام",
+    type: FieldType.checkbox,
+    key: 'isActive',
+  ),
+  FormItemModel(
+    id: 7,
+    label: "fef",
+    type: FieldType.dropdown,
+    key: "province",
+    options: ["تهران", "اصفهان", "شیراز"],
+  ),
+  FormItemModel(
+    id: 8,
+    label: "fef",
+    type: FieldType.dropdown,
+    key: "province",
+    options: ["تهران", "اصفهان", "شیراز"],
+  ),
+];
+// =================================================================
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Map<String, dynamic>? editingItem;
+  const HomeScreen({super.key, this.editingItem});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  String _name = '';
-  String _email = '';
+  late List<FormItemModel> formFields;
+  Map<String, String> errors = {};
+  bool isEditMode = false;
+  int? editingId;
+
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: _name);
-    _emailController = TextEditingController(text: _email);
+    formFields = customerForm.map((f) => f.copyWith()).toList();
+
+    if (widget.editingItem != null) {
+      isEditMode = true;
+      editingId = widget.editingItem!['id'];
+      _loadEditData();
+    }
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    super.dispose();
+  void _loadEditData() {
+    final data = widget.editingItem!;
+    for (var field in formFields) {
+      if (data.containsKey(field.key)) {
+        field.value = data[field.key];
+      }
+    }
+    setState(() {});
   }
 
-  String? _selectedProvince;
-  String? _selectedCustomerType;
+  void _onFieldChanged(int id, dynamic value) {
+    setState(() {
+      final field = formFields.firstWhere((f) => f.id == id);
+      field.value = value;
+    });
+  }
 
-  Map<String, bool> checklistValues = {
-    'terms': false,
-    'newsletter': false,
-    'privacy': false,
-  };
+  void _submitForm() {
+    errors.clear();
+    for (var field in formFields) {
+      if (field.required &&
+          (field.value == null || field.value.toString().isEmpty)) {
+        errors['${field.id}'] = '${field.label} الزامی است';
+      }
+    }
 
-  Map<String, bool> checklistValues2 = {'offers': false, 'notif': false};
+    if (errors.isNotEmpty) {
+      setState(() {});
+      return;
+    }
 
-  String? _nameError;
-  String? _emailError;
-  String? _provinceError;
-  String? _customerTypeError;
-  String? _termsError;
+    final data = <String, dynamic>{
+      'id': isEditMode ? editingId : DateTime.now().millisecondsSinceEpoch,
+      for (var field in formFields) field.key: field.value,
+    };
+
+    final provider = Provider.of<FormProvider>(context, listen: false);
+    if (isEditMode) {
+      provider.updateData(editingId!, data);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ویرایش شد'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      provider.addData(data);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('داده با موفقیت ثبت شد'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+
+    _resetForm();
+  }
+
+  void _resetForm() {
+    setState(() {
+      formFields = customerForm.map((f) => f.copyWith()).toList();
+      errors.clear();
+    });
+  }
+
+  Widget _buildButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label, style: const TextStyle(fontSize: 16)),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        backgroundColor: Colors.white.withOpacity(0.2),
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 5,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final double maxCardWidth = 800.0;
-
-    final TextFieldModel nameFieldModel = TextFieldModel(
-      label: 'نام شما',
-      key: 'name',
-      isrequired: true,
-      hint: 'نام خود را وارد کنید',
-      keyboardType: TextInputType.name,
-    );
-    final TextFieldModel emailFieldModel = TextFieldModel(
-      label: "ایمیل",
-      key: 'email',
-      isrequired: true,
-      hint: 'ایمیل خود را وارد کنید',
-      keyboardType: TextInputType.emailAddress,
-    );
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -102,9 +224,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      const Text(
-                        'فرم داینامیک',
-                        style: TextStyle(
+                      Text(
+                        isEditMode ? 'ویرایش طرف حساب' : 'فرم داینامیک',
+                        style: const TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -112,96 +234,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // فیلدهای متنی
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomTextField(
-                              model: nameFieldModel,
-                              controller: _nameController,
-                              onChanged: (v) => setState(() => _name = v),
-                              errorText: _nameError,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CustomTextField(
-                              model: emailFieldModel,
-                              controller: _emailController,
-                              onChanged: (v) => setState(() => _email = v),
-                              errorText: _emailError,
-                            ),
-                          ),
-                        ],
+                      // فرم داینامیک
+                      DynamicForm(
+                        fields: formFields,
+                        onChanged: _onFieldChanged,
+                        errors: errors,
                       ),
-                      const SizedBox(height: 16),
 
-                      // دراپ‌دان‌ها
-                      CustomDropdown(
-                        label: 'استان',
-                        isrequired: true,
-                        items: const [
-                          'تهران',
-                          'اصفهان',
-                          'شیراز',
-                          'مشهد',
-                          'کردستان',
-                        ],
-                        value: _selectedProvince,
-                        hint: 'استان خود را انتخاب کنید',
-                        prefixIcon: Icons.location_on,
-                        onChanged: (v) => setState(() => _selectedProvince = v),
-                        errorText: _provinceError,
-                      ),
-                      const SizedBox(height: 12),
-                      CustomDropdown(
-                        label: 'نوع مشتری',
-                        isrequired: true,
-                        items: const ['عمده فروش', 'خرده فروش', 'شرکت', 'فرد'],
-                        value: _selectedCustomerType,
-                        hint: 'نوع مشتری را انتخاب کنید',
-                        prefixIcon: Icons.person_outline,
-                        onChanged: (v) =>
-                            setState(() => _selectedCustomerType = v),
-                        errorText: _customerTypeError,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // چک‌لیست‌ها
-                      CustomChecklist(
-                        title: 'شرایط و قوانین',
-                        items: [
-                          ChecklistItem(
-                            key: 'terms',
-                            label: 'قوانین را می‌پذیرم',
-                            isRequired: true,
-                          ),
-                          ChecklistItem(
-                            key: 'newsletter',
-                            label: 'دریافت خبرنامه',
-                            hint: 'اخبار هفتگی',
-                          ),
-                          ChecklistItem(
-                            key: 'privacy',
-                            label: 'حریم خصوصی را خواندم',
-                          ),
-                        ],
-                        values: checklistValues,
-                        onChanged: (k, v) =>
-                            setState(() => checklistValues[k] = v),
-                        errorText: _termsError,
-                      ),
-                      const SizedBox(height: 12),
-                      CustomChecklist(
-                        title: 'اطلاع‌رسانی',
-                        items: [
-                          ChecklistItem(key: 'offers', label: 'تخفیفات'),
-                          ChecklistItem(key: 'notif', label: 'اطلاعیه‌ها'),
-                        ],
-                        values: checklistValues2,
-                        onChanged: (k, v) =>
-                            setState(() => checklistValues2[k] = v),
-                      ),
                       const SizedBox(height: 24),
 
                       // دکمه‌ها
@@ -211,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: _buildButton(
                               context,
                               icon: Icons.check_circle,
-                              label: 'ساخت',
+                              label: isEditMode ? 'ویرایش' : 'ساخت',
                               onPressed: _submitForm,
                             ),
                           ),
@@ -231,6 +270,39 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
+
+                      // دکمه‌های ویرایش/حذف/لغو
+                      if (isEditMode) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Provider.of<FormProvider>(
+                                  context,
+                                  listen: false,
+                                ).removeData(editingId!);
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('حذف شد'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('حذف'),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('لغو'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -238,96 +310,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _submitForm() {
-    // 1. اعتبارسنجی
-    setState(() {
-      _nameError = _name.trim().isEmpty ? 'نام الزامی است' : null;
-      _emailError = _email.trim().isEmpty ? 'ایمیل الزامی است' : null;
-      _provinceError = _selectedProvince == null
-          ? 'استان را انتخاب کنید'
-          : null;
-      _customerTypeError = _selectedCustomerType == null
-          ? 'نوع مشتری را انتخاب کنید'
-          : null;
-      _termsError = !checklistValues['terms']!
-          ? 'پذیرش قوانین الزامی است'
-          : null;
-    });
-
-    // 2. اگر خطا بود، متوقف شو
-    if (_nameError != null ||
-        _emailError != null ||
-        _provinceError != null ||
-        _customerTypeError != null ||
-        _termsError != null) {
-      return;
-    }
-
-    // 3. ساخت داده
-    final formData = {
-      'id': DateTime.now().millisecondsSinceEpoch,
-      'name': _name.trim(),
-      'email': _email.trim(),
-      'province': _selectedProvince!,
-      'customerType': _selectedCustomerType!,
-      'newsletter': checklistValues['newsletter']!,
-      'privacy': checklistValues['privacy']!,
-      'offers': checklistValues2['offers']!,
-      'notif': checklistValues2['notif']!,
-    };
-
-    // 4. اضافه کردن به Provider
-    Provider.of<FormProvider>(context, listen: false).addData(formData);
-
-    // 5. نمایش اسنک‌بار
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('داده با موفقیت ثبت شد'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-
-    // 6. ریست فرم
-    _resetForm();
-  }
-
-  void _resetForm() {
-    setState(() {
-      _name = '';
-      _email = '';
-      _selectedProvince = null;
-      _selectedCustomerType = null;
-      checklistValues.updateAll((k, v) => false);
-      checklistValues2.updateAll((k, v) => false);
-      _nameError = _emailError = _provinceError = _customerTypeError =
-          _termsError = null;
-      _nameController.clear();
-      _emailController.clear();
-    });
-  }
-
-  Widget _buildButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label, style: const TextStyle(fontSize: 16)),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        backgroundColor: Colors.white.withOpacity(0.2),
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 5,
       ),
     );
   }
