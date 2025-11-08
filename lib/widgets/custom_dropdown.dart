@@ -16,14 +16,35 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? selectedValue;
+    if (model.value != null && model.value.toString().isNotEmpty) {
+      selectedValue = model.value.toString();
+    }
+
+    // اگر مقدار در options نبود، null کن
+    if (selectedValue != null && !model.options!.contains(selectedValue)) {
+      selectedValue = null;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
-        value: model.value,
+        value: selectedValue,
+        hint: model.hint != null
+            ? Text(model.hint!, style: const TextStyle(color: Colors.white38))
+            : const Text('انتخاب کنید'),
         items: model.options!.map((String item) {
           return DropdownMenuItem<String>(value: item, child: Text(item));
         }).toList(),
-        onChanged: onChanged,
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            // مهم: مقدار رو به model.value بده
+            model.value = newValue;
+
+            // سپس به HomeScreen اطلاع بده
+            onChanged(newValue);
+          }
+        },
         borderRadius: BorderRadius.circular(20),
         elevation: 8,
         dropdownColor: const Color.fromARGB(255, 50, 58, 108).withOpacity(0.9),
@@ -47,8 +68,6 @@ class CustomDropdown extends StatelessWidget {
             ),
           ),
           labelStyle: const TextStyle(height: 0),
-          hintText: model.hint,
-          hintStyle: const TextStyle(color: Colors.white38),
           filled: true,
           fillColor: Colors.white.withOpacity(0.2),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
@@ -76,6 +95,14 @@ class CustomDropdown extends StatelessWidget {
               ? Icon(model.prefixIcon, color: Colors.white70)
               : null,
         ),
+        validator: model.required
+            ? (value) {
+                if (value == null || value.isEmpty) {
+                  return '${model.label} الزامی است';
+                }
+                return null;
+              }
+            : null,
       ),
     );
   }

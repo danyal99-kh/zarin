@@ -10,58 +10,105 @@ class DataScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FormProvider>(
-      builder: (context, provider, child) {
-        final dataList = provider.dataList;
+    return Container(
+      // گرادیانت دارک برای پس‌زمینه
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1A1A2E), // آبی تیره
+            Color(0xFF16213E), // آبی خیلی تیره
+            Color(0xFF0F3460), // آبی عمیق
+            Color(0xFF1E1E3F), // بنفش تیره
+          ],
+          stops: [0.0, 0.4, 0.7, 1.0],
+        ),
+      ),
+      child: Consumer<FormProvider>(
+        builder: (context, provider, child) {
+          final dataList = provider.dataList;
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('داده‌های ثبت شده')),
-          body: dataList.isEmpty
-              ? const Center(child: Text('هیچ داده‌ای ثبت نشده'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: dataList.length,
-                  itemBuilder: (context, index) {
-                    final data = dataList[index];
-                    return GlassMorphismCard(
-                      child: ListTile(
-                        title: Text(
-                          data['name'] ?? 'بدون نام',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          'موبایل: ${data['mobile']}',
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        HomeScreen(editingItem: data),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                provider.removeData(data['id']);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+          return Scaffold(
+            backgroundColor:
+                Colors.transparent, // مهم: شفاف کن تا گرادیانت دیده بشه
+            appBar: AppBar(
+              title: const Text('داده‌های ثبت شده'),
+              backgroundColor: Colors.black.withOpacity(0.3),
+              elevation: 0,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black.withOpacity(0.5), Colors.transparent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
-        );
-      },
+              ),
+            ),
+            body: dataList.isEmpty
+                ? const Center(
+                    child: Text(
+                      'هیچ داده‌ای ثبت نشده',
+                      style: TextStyle(color: Colors.white70, fontSize: 18),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: dataList.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      final data = dataList[index];
+                      return GlassMorphismCard(
+                        child: ListTile(
+                          title: Text(
+                            data['name'] ?? 'بدون نام',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'موبایل: ${data['mobile']}',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.cyanAccent,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          HomeScreen(editingItem: data),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () {
+                                  provider.removeData(data['id']);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          );
+        },
+      ),
     );
   }
 }

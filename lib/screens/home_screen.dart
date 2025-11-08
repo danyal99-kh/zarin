@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:zarin/form_provider.dart';
 import 'package:zarin/models/form_item_model.dart';
@@ -6,7 +7,7 @@ import 'package:zarin/widgets/glass_morphism_card.dart';
 import 'package:zarin/screens/data_screen.dart';
 import 'package:zarin/widgets/dynamic_form.dart';
 
-// ====================== لیست فرم نمونه (مثل PDF) ======================
+// ====================== لیست فرم نمونه  ======================
 
 final List<FormItemModel> customerForm = [
   FormItemModel(
@@ -26,7 +27,11 @@ final List<FormItemModel> customerForm = [
     type: FieldType.text,
     required: true,
     hint: 'شماره موبایل خود را وارد کنید',
-    keyboardType: TextInputType.phone,
+    keyboardType: TextInputType.number,
+    inputFormatters: [
+      FilteringTextInputFormatter.digitsOnly,
+      LengthLimitingTextInputFormatter(11),
+    ],
     value: '',
   ),
   FormItemModel(
@@ -37,14 +42,14 @@ final List<FormItemModel> customerForm = [
     required: true,
     options: ['حقیقی', 'حقوقی'],
     hint: 'نوع طرف حساب را انتخاب کنید',
-    value: 'حقیقی',
+    value: '',
   ),
   FormItemModel(
     id: 4,
     key: 'isActive',
     label: 'وضعیت فعال بودن',
     type: FieldType.checkbox,
-    value: true,
+    value: "",
   ),
   FormItemModel(
     id: 5,
@@ -53,26 +58,6 @@ final List<FormItemModel> customerForm = [
     type: FieldType.radio,
     options: ['مرد', 'زن'],
     value: 'مرد',
-  ),
-  FormItemModel(
-    id: 6,
-    label: "سلام",
-    type: FieldType.checkbox,
-    key: 'isActive',
-  ),
-  FormItemModel(
-    id: 7,
-    label: "fef",
-    type: FieldType.dropdown,
-    key: "province",
-    options: ["تهران", "اصفهان", "شیراز"],
-  ),
-  FormItemModel(
-    id: 8,
-    label: "fef",
-    type: FieldType.dropdown,
-    key: "province",
-    options: ["تهران", "اصفهان", "شیراز"],
   ),
 ];
 // =================================================================
@@ -90,11 +75,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, String> errors = {};
   bool isEditMode = false;
   int? editingId;
-
+  final List<TextEditingController> _textControllers = [];
   @override
   void initState() {
     super.initState();
-    formFields = customerForm.map((f) => f.copyWith()).toList();
+    _initializeForm(); // اینجا فراخوانی میشه
 
     if (widget.editingItem != null) {
       isEditMode = true;
@@ -103,14 +88,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _initializeForm() {
+    // پاک کردن کنترلرهای قبلی (برای reset)
+    for (var c in _textControllers) {
+      c.dispose();
+    }
+    _textControllers.clear();
+
+    formFields = customerForm.map((f) {
+      final controller = TextEditingController(text: f.value);
+      if (f.type == FieldType.text) {
+        _textControllers.add(controller);
+      }
+      return f.copyWith(controller: controller);
+    }).toList();
+  }
+
   void _loadEditData() {
     final data = widget.editingItem!;
     for (var field in formFields) {
       if (data.containsKey(field.key)) {
-        field.value = data[field.key];
+        final value = data[field.key].toString();
+        field.controller?.text = value; // مقدار رو به کنترلر بده
+        field.value = value; // اختیاری: برای اعتبارسنجی
       }
     }
-    setState(() {});
   }
 
   void _onFieldChanged(int id, dynamic value) {
@@ -122,9 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _submitForm() {
     errors.clear();
+
     for (var field in formFields) {
-      if (field.required &&
-          (field.value == null || field.value.toString().isEmpty)) {
+      if (field.type == FieldType.text && field.controller != null) {
+        field.value = field.controller!.text.trim();
+      }
+
+      if (field.required && field.value.toString().isEmpty) {
         errors['${field.id}'] = '${field.label} الزامی است';
       }
     }
@@ -163,9 +169,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _resetForm() {
     setState(() {
-      formFields = customerForm.map((f) => f.copyWith()).toList();
+      _initializeForm(); // کنترلرها دوباره ساخته میشن
       errors.clear();
     });
+  }
+
+  @override
+  void dispose() {
+    for (var c in _textControllers) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Widget _buildButton(
@@ -202,10 +216,10 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color.fromARGB(255, 59, 112, 210),
-              Color(0xFF2A5298),
-              Color(0xFF4A00E0),
-              Color.fromARGB(255, 113, 10, 202),
+              Color(0xFF1A1A2E), // آبی تیره
+              Color(0xFF16213E), // آبی خیلی تیره
+              Color(0xFF0F3460), // آبی عمیق
+              Color(0xFF1E1E3F), // بنفش تیر
             ],
             stops: [0.0, 0.4, 0.7, 1.0],
           ),

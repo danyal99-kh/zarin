@@ -1,5 +1,6 @@
 // models/form_item_model.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_dropdown.dart';
 import '../widgets/custom_checklist.dart';
@@ -16,9 +17,11 @@ class FormItemModel {
   final List<String>? options;
   final TextInputType? keyboardType;
   final IconData? prefixIcon;
-  final List<ChecklistItem>? checklistItems; // فقط برای checkbox
+  final List<ChecklistItem>? checklistItems;
   dynamic value;
   final String key;
+  final TextEditingController? controller;
+  final List<TextInputFormatter>? inputFormatters;
   FormItemModel({
     required this.id,
     required this.label,
@@ -30,16 +33,24 @@ class FormItemModel {
     this.prefixIcon,
     this.checklistItems,
     required this.key,
+    this.controller,
+    this.inputFormatters,
     this.value,
   });
 
   // کپی با مقدار جدید
-  FormItemModel copyWith({dynamic value}) {
+  FormItemModel copyWith({
+    dynamic value,
+    required TextEditingController controller,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return FormItemModel(
       id: id,
       label: label,
       type: type,
       required: required,
+      controller: controller,
+      inputFormatters: inputFormatters ?? this.inputFormatters,
       hint: hint,
       options: options,
       keyboardType: keyboardType,
@@ -57,11 +68,7 @@ class FormItemModel {
   }) {
     switch (type) {
       case FieldType.text:
-        return CustomTextField(
-          model: this,
-          onChanged: onChanged,
-          errorText: errorText,
-        );
+        return CustomTextField(model: this, errorText: errorText);
 
       case FieldType.dropdown:
         return CustomDropdown(
@@ -99,7 +106,6 @@ class FormItemModel {
   }
 }
 
-// برای چک‌لیست
 class ChecklistItem {
   final String key;
   final String label;

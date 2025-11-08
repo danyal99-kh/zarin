@@ -29,8 +29,8 @@ class DynamicForm extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: CustomTextField(
+                controller: field.controller,
                 model: field,
-                onChanged: (v) => onChanged(field.id, v),
                 errorText: error,
               ),
             );
