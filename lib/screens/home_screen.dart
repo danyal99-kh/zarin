@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:zarin/form_provider.dart';
 import 'package:zarin/models/form_item_model.dart';
@@ -7,8 +6,7 @@ import 'package:zarin/widgets/glass_morphism_card.dart';
 import 'package:zarin/screens/data_screen.dart';
 import 'package:zarin/widgets/dynamic_form.dart';
 
-// ====================== لیست فرم نمونه  ======================
-
+// ====================== لیست فیلد ها =======================
 final List<FormItemModel> customerForm = [
   FormItemModel(
     id: 1,
@@ -20,6 +18,7 @@ final List<FormItemModel> customerForm = [
     keyboardType: TextInputType.name,
     value: '',
   ),
+
   FormItemModel(
     id: 2,
     key: 'mobile',
@@ -28,10 +27,7 @@ final List<FormItemModel> customerForm = [
     required: true,
     hint: 'شماره موبایل خود را وارد کنید',
     keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(11),
-    ],
+
     value: '',
   ),
   FormItemModel(
@@ -57,7 +53,7 @@ final List<FormItemModel> customerForm = [
     label: 'جنسیت',
     type: FieldType.radio,
     options: ['مرد', 'زن'],
-    value: 'مرد',
+    value: '',
   ),
 ];
 // =================================================================
@@ -79,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeForm(); // اینجا فراخوانی میشه
+    _initializeForm();
 
     if (widget.editingItem != null) {
       isEditMode = true;
@@ -89,7 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initializeForm() {
-    // پاک کردن کنترلرهای قبلی (برای reset)
     for (var c in _textControllers) {
       c.dispose();
     }
@@ -109,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
     for (var field in formFields) {
       if (data.containsKey(field.key)) {
         final value = data[field.key].toString();
-        field.controller?.text = value; // مقدار رو به کنترلر بده
-        field.value = value; // اختیاری: برای اعتبارسنجی
+        field.controller?.text = value;
+        field.value = value;
       }
     }
   }
@@ -126,12 +121,39 @@ class _HomeScreenState extends State<HomeScreen> {
     errors.clear();
 
     for (var field in formFields) {
+      dynamic currentValue = field.value;
+
       if (field.type == FieldType.text && field.controller != null) {
-        field.value = field.controller!.text.trim();
+        currentValue = field.controller!.text.trim();
+        field.value = currentValue;
       }
 
-      if (field.required && field.value.toString().isEmpty) {
-        errors['${field.id}'] = '${field.label} الزامی است';
+      bool isEmpty = false;
+
+      if (field.required) {
+        if (field.type == FieldType.text) {
+          isEmpty = currentValue.toString().isEmpty;
+        } else if (field.type == FieldType.dropdown) {
+          isEmpty = currentValue == null || currentValue.toString().isEmpty;
+        } else if (field.type == FieldType.checkbox) {
+          if (field.options == null || field.options!.isEmpty) {
+            isEmpty = currentValue != true && currentValue != 'true';
+          } else {
+            List<String> selected = [];
+            if (currentValue is List) {
+              selected = currentValue.cast<String>();
+            } else if (currentValue is String && currentValue.isNotEmpty) {
+              selected = [currentValue];
+            }
+            isEmpty = selected.isEmpty;
+          }
+        } else if (field.type == FieldType.radio) {
+          isEmpty = currentValue == null || currentValue.toString().isEmpty;
+        }
+
+        if (isEmpty) {
+          errors['${field.id}'] = '${field.label} الزامی است';
+        }
       }
     }
 
@@ -150,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
       provider.updateData(editingId!, data);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('ویرایش شد'),
+          content: Text('ویرایش با موفقیت انجام شد'),
           backgroundColor: Colors.green,
         ),
       );
@@ -169,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _resetForm() {
     setState(() {
-      _initializeForm(); // کنترلرها دوباره ساخته میشن
+      _initializeForm();
       errors.clear();
     });
   }
@@ -216,10 +238,10 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF1A1A2E), // آبی تیره
-              Color(0xFF16213E), // آبی خیلی تیره
-              Color(0xFF0F3460), // آبی عمیق
-              Color(0xFF1E1E3F), // بنفش تیر
+              Color(0xFF1A1A2E),
+              Color(0xFF16213E),
+              Color(0xFF0F3460),
+              Color(0xFF1E1E3F),
             ],
             stops: [0.0, 0.4, 0.7, 1.0],
           ),
@@ -239,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     children: [
                       Text(
-                        isEditMode ? 'ویرایش طرف حساب' : 'فرم داینامیک',
+                        isEditMode ? 'ویرایش حساب' : 'ایجاد حساب ',
                         style: const TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
@@ -257,7 +279,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 24),
 
-                      // دکمه‌ها
                       Row(
                         children: [
                           Expanded(
@@ -285,7 +306,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
 
-                      // دکمه‌های ویرایش/حذف/لغو
                       if (isEditMode) ...[
                         const SizedBox(height: 12),
                         Row(
@@ -311,7 +331,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: 8),
                             ElevatedButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                _resetForm();
+                                Navigator.pop(context);
+                              },
                               child: const Text('لغو'),
                             ),
                           ],

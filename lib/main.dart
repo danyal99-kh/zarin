@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zarin/form_provider.dart';
@@ -16,7 +15,6 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => FormProvider(),
       child: MaterialApp(
-        title: 'فرم داینامیک',
         theme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
         home: const HomeScreen(),
         debugShowCheckedModeBanner: false,

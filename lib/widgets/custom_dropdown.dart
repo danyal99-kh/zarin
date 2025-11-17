@@ -21,7 +21,6 @@ class CustomDropdown extends StatelessWidget {
       selectedValue = model.value.toString();
     }
 
-    // اگر مقدار در options نبود، null کن
     if (selectedValue != null && !model.options!.contains(selectedValue)) {
       selectedValue = null;
     }
@@ -38,10 +37,8 @@ class CustomDropdown extends StatelessWidget {
         }).toList(),
         onChanged: (String? newValue) {
           if (newValue != null) {
-            // مهم: مقدار رو به model.value بده
             model.value = newValue;
 
-            // سپس به HomeScreen اطلاع بده
             onChanged(newValue);
           }
         },

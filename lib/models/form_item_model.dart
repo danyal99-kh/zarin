@@ -38,7 +38,6 @@ class FormItemModel {
     this.value,
   });
 
-  // کپی با مقدار جدید
   FormItemModel copyWith({
     dynamic value,
     required TextEditingController controller,
@@ -61,7 +60,6 @@ class FormItemModel {
     );
   }
 
-  // ساخت ویجت داینامیک
   Widget buildWidget({
     required Function(dynamic) onChanged,
     String? errorText,
@@ -78,7 +76,7 @@ class FormItemModel {
         );
 
       case FieldType.checkbox:
-        return CustomChecklist(
+        return CustomCheckbox(
           model: this,
           onChanged: onChanged,
           errorText: errorText,

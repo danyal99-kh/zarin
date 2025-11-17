@@ -1,4 +1,3 @@
-// widgets/dynamic_form.dart
 import 'package:flutter/material.dart';
 import '../models/form_item_model.dart';
 import 'custom_text_field.dart';
@@ -12,11 +11,11 @@ class DynamicForm extends StatelessWidget {
   final Map<String, String> errors;
 
   const DynamicForm({
-    Key? key,
+    super.key,
     required this.fields,
     required this.onChanged,
     this.errors = const {},
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +47,7 @@ class DynamicForm extends StatelessWidget {
           case FieldType.checkbox:
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: CustomChecklist(
+              child: CustomCheckbox(
                 model: field,
                 onChanged: (v) => onChanged(field.id, v),
                 errorText: error,

@@ -1,4 +1,3 @@
-// lib/screens/data_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zarin/form_provider.dart';
@@ -11,16 +10,15 @@ class DataScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // گرادیانت دارک برای پس‌زمینه
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF1A1A2E), // آبی تیره
-            Color(0xFF16213E), // آبی خیلی تیره
-            Color(0xFF0F3460), // آبی عمیق
-            Color(0xFF1E1E3F), // بنفش تیره
+            Color(0xFF1A1A2E),
+            Color(0xFF16213E),
+            Color(0xFF0F3460),
+            Color(0xFF1E1E3F),
           ],
           stops: [0.0, 0.4, 0.7, 1.0],
         ),
@@ -30,8 +28,7 @@ class DataScreen extends StatelessWidget {
           final dataList = provider.dataList;
 
           return Scaffold(
-            backgroundColor:
-                Colors.transparent, // مهم: شفاف کن تا گرادیانت دیده بشه
+            backgroundColor: Colors.transparent,
             appBar: AppBar(
               title: const Text('داده‌های ثبت شده'),
               backgroundColor: Colors.black.withOpacity(0.3),
